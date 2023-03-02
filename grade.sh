@@ -28,7 +28,8 @@ echo -e "All files found!\n"
 
 for file in "${REQ_FILES[@]}"
 do
-  javac -cp $CPATH ${file}.java
+  javac -cp i$CPATH ${file}.java 2>/dev/null
+  #javac -cp $CPATH ${file}.java
   if [ $? -ne 0 ]
   then
     echo "Could not compile ${file}! Aborting."
@@ -43,9 +44,17 @@ cp -r "${BASE_DIR}/lib" ./
 for tester in "${TEST_FILES[@]}"
 do
   cp "${BASE_DIR}/${tester}.java" ./
-  javac -cp $CPATH ${tester}.java
+  javac -cp $CPATH ${tester}.java 2>/dev/null
+  #javac -cp $CPATH ${tester}.java
+  if [ $? -ne 0 ]
+  then
+    echo "Could not compile tester! Assuming signature issue (or similar). Aborting."
+    echo -e "Final score:\n0"
+    exit
+  fi
   #echo $(java -cp $CPATH org.junit.runner.JUnitCore ${tester})
   TEST_OUTPUTS=$(java -cp $CPATH org.junit.runner.JUnitCore ${tester} | awk 'NR == 2')
+  
   TOTAL_TESTS=$(echo ${TEST_OUTPUTS} | tr -d 'E' | awk '{ print length; }')
   FAILED_TESTS=$(echo ${TEST_OUTPUTS} | tr -d -c 'E' | awk '{ print length; }')
   if [ -z "$FAILED_TESTS" ]
